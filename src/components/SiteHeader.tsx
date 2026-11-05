@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpRight, Mail, Menu, X } from "lucide-react";
+import { ArrowUpRight, Mail, Menu, Phone, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const navigation = [
@@ -18,11 +18,16 @@ export default function SiteHeader() {
   return (
     <>
       <div className="topline">
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-2.5 text-xs font-medium uppercase tracking-[0.14em] sm:px-8 lg:px-14">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-5 px-5 py-2.5 text-xs font-medium uppercase tracking-[0.14em] sm:px-8 lg:px-14">
           <span className="hidden sm:inline">Property guidance across Uttar Pradesh</span>
-          <a className="ml-auto inline-flex items-center gap-2 transition hover:text-terracotta" href="mailto:sales@shagunassociates.com">
-            <Mail size={12} /> sales@shagunassociates.com
-          </a>
+          <div className="topline-contacts">
+            <a className="inline-flex items-center gap-2 transition hover:text-terracotta" href="tel:+919837900115">
+              <Phone size={12} /> +91 98379 00115
+            </a>
+            <a className="inline-flex items-center gap-2 transition hover:text-terracotta" href="mailto:sales@shagunassociates.com">
+              <Mail size={12} /> sales@shagunassociates.com
+            </a>
+          </div>
         </div>
       </div>
 

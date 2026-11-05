@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ArrowDownRight,
   ArrowLeft,
@@ -75,7 +75,10 @@ function App() {
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [brandFilter, setBrandFilter] = useState("All");
+  const [cityFilter, setCityFilter] = useState("All");
   const slide = heroSlides[activeSlide];
+  const cities = useMemo(() => [...new Set(projects.map((project) => project.city))].sort(), []);
+  const brands = useMemo(() => [...new Set(projects.map((project) => project.brand))].sort(), []);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -92,15 +95,36 @@ function App() {
     const normalizedQuery = query.trim().toLowerCase();
     return projects.filter((project) => {
       const matchesBrand = brandFilter === "All" || project.brand === brandFilter;
+      const matchesCity = cityFilter === "All" || project.city === cityFilter;
       const matchesQuery =
         !normalizedQuery ||
         `${project.name} ${project.city} ${project.brand}`.toLowerCase().includes(normalizedQuery);
-      return matchesBrand && matchesQuery;
+      return matchesBrand && matchesCity && matchesQuery;
     });
-  }, [brandFilter, query]);
+  }, [brandFilter, cityFilter, query]);
 
   const goToSlide = (direction: number) => {
     setActiveSlide((current) => (current + direction + heroSlides.length) % heroSlides.length);
+  };
+
+  const findProjects = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setDirectoryOpen(true);
+    window.setTimeout(() => document.getElementById("directory")?.scrollIntoView({ behavior: "smooth" }), 0);
+  };
+
+  const prepareEnquiry = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const subject = `Property enquiry from ${String(formData.get("name"))}`;
+    const body = [
+      `Name: ${String(formData.get("name"))}`,
+      `Phone: ${String(formData.get("phone"))}`,
+      `Interested in: ${String(formData.get("interest"))}`,
+      "",
+      String(formData.get("message")),
+    ].join("\n");
+    window.location.href = `mailto:sales@shagunassociates.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (
@@ -164,19 +188,49 @@ function App() {
             <button type="button" aria-label="Previous slide" onClick={() => goToSlide(-1)}><ArrowLeft size={18} /></button>
             <button type="button" aria-label="Next slide" onClick={() => goToSlide(1)}><ArrowRight size={18} /></button>
           </div>
+          <div className="hero-search-wrap">
+            <form className="hero-search" onSubmit={findProjects}>
+              <label className="hero-search-field">
+                <span>Looking for</span>
+                <span className="hero-search-input">
+                  <Search size={17} strokeWidth={1.8} />
+                  <input
+                    type="search"
+                    placeholder="Project, developer or city"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    aria-label="Search projects"
+                  />
+                </span>
+              </label>
+              <label className="hero-search-field hero-search-location">
+                <span>Preferred location</span>
+                <span className="hero-search-input">
+                  <MapPin size={17} strokeWidth={1.8} />
+                  <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)} aria-label="Choose a city">
+                    <option value="All">All locations</option>
+                    {cities.map((city) => <option value={city} key={city}>{city}</option>)}
+                  </select>
+                </span>
+              </label>
+              <button className="button button-dark hero-search-submit" type="submit">
+                Find a project <ArrowRight size={16} />
+              </button>
+            </form>
+          </div>
         </section>
 
         <section id="about" className="intro-section section-wrap">
           <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-24">
             <div>
-              <p className="eyebrow"><span className="eyebrow-line" /> A little about us</p>
-              <h2 className="section-title mt-6">A good home is<br />the start of <em>everything.</em></h2>
+              <p className="eyebrow"><span className="eyebrow-line" /> Your property journey</p>
+              <h2 className="section-title mt-6">Find the right place<br />for what comes <em>next.</em></h2>
             </div>
             <div className="flex flex-col justify-between gap-9 lg:pt-12">
               <p className="max-w-[570px] text-[15px] leading-8 text-muted">
                 Shagun Associates is a property consultancy connecting homebuyers with residential and commercial projects across Uttar Pradesh. Our portfolio brings together developments from established names, with local teams in Meerut, Lucknow and Allahabad to help you make an informed next move.
               </p>
-              <a className="text-link" href="#contact">Get to know Shagun Associates <ArrowUpRight size={15} /></a>
+              <a className="text-link" href="#contact">Talk to a local property advisor <ArrowUpRight size={15} /></a>
             </div>
           </div>
           <div className="intro-rule" />
@@ -200,10 +254,10 @@ function App() {
             <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
               <div>
                 <p className="eyebrow"><span className="eyebrow-line" /> The places we know</p>
-                <h2 className="section-title mt-6">Places with <em>possibility.</em></h2>
+                <h2 className="section-title mt-6">Explore our <em>projects.</em></h2>
               </div>
               <p className="max-w-sm text-sm leading-7 text-muted">
-                Browse residential communities and other developments by location and developer. Select a project for an overview and enquiry details.
+                Compare locations and developers across our portfolio. Open a project to see what we know and ask us for the latest details.
               </p>
             </div>
 
@@ -222,7 +276,7 @@ function App() {
                 <div>
                   <p className="eyebrow"><span className="eyebrow-line" /> Find a place</p>
                   <h3 className="mt-4 font-display text-3xl tracking-[-0.04em] sm:text-4xl">Our project directory</h3>
-                  <p className="mt-3 text-sm text-muted">Search by project name, city or developer.</p>
+                  <p className="mt-3 text-sm text-muted">Find projects by name, location or developer.</p>
                 </div>
                 <button
                   type="button"
@@ -249,11 +303,20 @@ function App() {
                       />
                     </label>
                     <label className="filter-field">
+                      <span className="sr-only">Filter by location</span>
+                      <MapPin size={15} />
+                      <select value={cityFilter} onChange={(event) => setCityFilter(event.target.value)}>
+                        <option value="All">All locations</option>
+                        {cities.map((city) => <option key={city} value={city}>{city}</option>)}
+                      </select>
+                      <ChevronDown size={15} />
+                    </label>
+                    <label className="filter-field">
                       <span className="sr-only">Filter by developer</span>
+                      <Building2 size={15} />
                       <select value={brandFilter} onChange={(event) => setBrandFilter(event.target.value)}>
-                        {["All", "Ansal", "DLF", "Era", "Omaxe", "Supertech", "Other"].map((brand) => (
-                          <option key={brand} value={brand}>{brand === "All" ? "All developers" : brand}</option>
-                        ))}
+                        <option value="All">All developers</option>
+                        {brands.map((brand) => <option key={brand} value={brand}>{brand}</option>)}
                       </select>
                       <ChevronDown size={15} />
                     </label>
@@ -296,7 +359,7 @@ function App() {
             <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
               <div>
                 <p className="eyebrow"><span className="eyebrow-line" /> Good company</p>
-                <h2 className="section-title mt-5">Built on <em>good relationships.</em></h2>
+                <h2 className="section-title mt-5">Meet the names<br />behind the <em>places.</em></h2>
               </div>
               <p className="max-w-xs text-sm leading-7 text-muted">Working alongside developers whose projects shape the places we call home.</p>
             </div>
@@ -314,14 +377,14 @@ function App() {
         <section className="about-band">
           <div className="about-band-image" />
           <div className="about-band-content">
-            <p className="eyebrow eyebrow-light"><span className="eyebrow-line" /> Our approach</p>
+            <p className="eyebrow eyebrow-light"><span className="eyebrow-line" /> Local knowledge. Personal guidance.</p>
             <h2 className="mt-6 max-w-xl font-display text-4xl leading-[1.12] tracking-[-0.045em] text-white sm:text-5xl">
-              More than a property.<br />A place to <em className="text-sand">belong.</em>
+              Make your next move<br />with a team that <em className="text-sand">knows the place.</em>
             </h2>
             <p className="mt-6 max-w-md text-sm leading-7 text-white/70">
-              A move is a big decision. We bring local knowledge, a considered portfolio and a human touch to every conversation.
+              From the first shortlist to your next site visit, our local team can help you explore the options and ask the right questions.
             </p>
-            <a className="button button-light mt-8" href="#contact">Let&apos;s find your place <ArrowUpRight size={15} /></a>
+            <a className="button button-light mt-8" href="#contact">Speak with our team <ArrowUpRight size={15} /></a>
           </div>
           <div className="about-band-mark"><Building2 size={26} strokeWidth={1} /><span>SHAGUN<br />ASSOCIATES</span></div>
         </section>
@@ -329,16 +392,52 @@ function App() {
         <section id="contact" className="contact-section section-wrap">
           <div className="grid gap-14 lg:grid-cols-[0.75fr_1.25fr] lg:gap-24">
             <div>
-              <p className="eyebrow"><span className="eyebrow-line" /> Start a conversation</p>
-              <h2 className="section-title mt-6">Let&apos;s talk<br /><em>about what&apos;s next.</em></h2>
+              <p className="eyebrow"><span className="eyebrow-line" /> We&apos;re here to help</p>
+              <h2 className="section-title mt-6">Your next move<br />starts with a <em>conversation.</em></h2>
               <p className="mt-6 max-w-sm text-sm leading-7 text-muted">
-                Tell us a little about what you&apos;re looking for. Our team would be glad to help you take the next step.
+                Tell us what you&apos;re looking for and where. Our property team will help you explore the next steps.
               </p>
               <a className="contact-email mt-8" href="mailto:sales@shagunassociates.com">
                 <span><Mail size={17} strokeWidth={1.7} /> sales@shagunassociates.com</span><ArrowUpRight size={16} />
               </a>
             </div>
 
+            <form className="enquiry-form" onSubmit={prepareEnquiry}>
+              <h3>Send us an enquiry</h3>
+              <p>Share a few details and your email app will open with your enquiry ready to send.</p>
+              <div className="enquiry-form-grid">
+                <label>
+                  <span>Your name</span>
+                  <input type="text" name="name" autoComplete="name" placeholder="Enter your name" required />
+                </label>
+                <label>
+                  <span>Phone number</span>
+                  <input type="tel" name="phone" autoComplete="tel" placeholder="+91" required />
+                </label>
+                <label className="enquiry-form-full">
+                  <span>Interested in</span>
+                  <select name="interest" defaultValue="" required>
+                  <option value="" disabled>Select a project</option>
+                    {projects.map((project) => (
+                      <option key={project.slug} value={`${project.name} — ${project.city}`}>
+                        {project.name} · {project.city}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="enquiry-form-full">
+                  <span>How can we help?</span>
+                  <textarea name="message" rows={3} placeholder="Tell us what you have in mind" required />
+                </label>
+              </div>
+              <button className="button button-dark mt-5" type="submit">Prepare enquiry <ArrowUpRight size={15} /></button>
+            </form>
+          </div>
+          <div className="office-section">
+            <div className="office-section-heading">
+              <p className="eyebrow"><span className="eyebrow-line" /> Visit or call</p>
+              <h3>Our offices</h3>
+            </div>
             <div className="office-grid">
               {offices.map((office) => (
                 <article className="office-card" key={office.type}>
