@@ -220,7 +220,7 @@ function App() {
           </div>
         </section>
 
-        <section id="about" className="intro-section section-wrap">
+        {/* <section id="about" className="intro-section section-wrap">
           <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-24">
             <div>
               <p className="eyebrow"><span className="eyebrow-line" /> Your property journey</p>
@@ -247,7 +247,7 @@ function App() {
               </div>
             ))}
           </div>
-        </section>
+        </section>*/}
 
         <section id="projects" className="projects-section">
           <div className="section-wrap">
